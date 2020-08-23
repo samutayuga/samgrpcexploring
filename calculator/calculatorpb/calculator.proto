@@ -61,5 +61,5 @@ service CalculatorService{
     //This rpc will throw an exception if the sent number is negative
     //The error being sent is of type INVALID_ARGUMENT
     rpc rootSquare(stream RootSquareRequest) returns (stream RootSquareResponse);
-    rpc sumPrime(SumPrimeRequest) returns (SumPrimeResponse);
+   // rpc sumPrime(SumPrimeRequest) returns (SumPrimeResponse);
 }

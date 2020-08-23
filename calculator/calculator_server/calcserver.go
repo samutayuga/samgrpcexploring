@@ -8,9 +8,10 @@ import (
 	"math"
 	"net"
 
-	"github.com/samutayuga/grpcudemy/calculator/calculatorpb"
+	"github.com/samutayuga/samgrpcexploring/calculator/calculatorpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
 
@@ -97,6 +98,7 @@ func main() {
 	}
 	//register the service
 	s := grpc.NewServer()
+	reflection.Register(s)
 	calculatorpb.RegisterCalculatorServiceServer(s, &calcServer{})
 	log.Printf("Service is registered %v", s)
 

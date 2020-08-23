@@ -121,3 +121,51 @@ service GreetService{
 # Codes
 
 ## Unary
+
+# SSL
+
+## Generate certificate autorithy key and trust
+
+### ca.key
+
+```yaml
+openssl genrsa --passout pass:1111 -des3 -out ca.key 4096
+```
+
+### ca.crt
+
+```yaml
+openssl req --passin pass:1111 -new -x509 -days 365 -key ca.key -out ca.crt -subj "/CN=localhost"
+```
+
+## Generate Server Private Key
+
+### server.key
+
+```yaml
+openssl genrsa --passout pass:1111 -des3 -out server.key 4096
+```
+
+## Get Certificate Signing Request from CA
+
+### server.csr
+
+```yaml
+openssl req -passin pass:1111 -new -key server.key -out server.csr -subj "/CN=localhost"
+```
+
+## Self sign the certificate with CA we created
+
+### server.crt
+
+```yaml
+openssl x509 -req -passin pass:1111 -days 365 -in server.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out server.crt
+```
+
+## Covert the server certificate to pem file
+
+### server.pem
+
+```yaml
+openssl pkcs8 -topk8 -nocrypt -passin pass:1111 -in server.key -out server.pem
+```

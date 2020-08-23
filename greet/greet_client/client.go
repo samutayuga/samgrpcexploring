@@ -7,22 +7,33 @@ import (
 	"log"
 	"time"
 
-	"github.com/samutayuga/grpcudemy/greet/greetpb"
+	"github.com/samutayuga/samgrpcexploring/greet/greetpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
 	log.Println("This is client ")
 	//connect to server
-
-	conn, err := grpc.Dial("127.0.0.1:50051", grpc.WithInsecure())
+	certFile := "ssl\\ca.crt"
+	creds, sslErr := credentials.NewClientTLSFromFile(certFile, "")
+	if sslErr != nil {
+		log.Fatalf("error file loading the ca Trust certificate %v", sslErr)
+		return
+	}
+	opts := grpc.WithTransportCredentials(creds)
+	conn, err := grpc.Dial("localhost:50051", opts)
 	if err != nil {
 		log.Fatalf("Error while dialing %v", err)
 	}
 	defer conn.Close()
 	c := greetpb.NewGreetServiceClient(conn)
-	//doUnary(c)
+	doUnary(c)
 	doBiDiStreaming(c)
+	doUnaryWithDeadLine(c, 5*time.Second)
+	doUnaryWithDeadLine(c, 1*time.Second)
 
 }
 
@@ -35,7 +46,32 @@ func doUnary(c greetpb.GreetServiceClient) {
 	}
 	log.Printf("response from greet: %v", res.Result)
 }
+func doUnaryWithDeadLine(c greetpb.GreetServiceClient, second time.Duration) {
+	fmt.Println("Starting to do a unary With deadline")
+	req := &greetpb.GreetWithDeadLineRequest{Greeting: &greetpb.Greeting{
+		FirstName: "Sam",
+		LastName:  "Mutayuga",
+	}}
+	ctx, cancel := context.WithTimeout(context.Background(), second)
+	defer cancel()
+	//	fmt.Printf("Created the client %v\n", c)
+	res, err := c.GreetWithDeadLine(ctx, req)
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			if st.Code() == codes.DeadlineExceeded {
+				fmt.Printf("Deadline exceeded after %v seconds", second)
+			} else {
+				fmt.Printf("Unexpected error %v", st)
+			}
+		} else {
+			log.Fatalf("error while calling GreetWithDeadLineRequest rpc %v", err)
+		}
+		return
 
+	}
+	log.Printf("response from greet: %v", res.Result)
+}
 func doServerStreaming(c greetpb.GreetServiceClient) {
 	fmt.Println("Starting to do a Server Streaming RPC")
 
