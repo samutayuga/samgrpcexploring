@@ -33,6 +33,7 @@ func (s *Server) GreetWithDeadLine(ctx context.Context, req *greetpb.GreetWithDe
 	for i := 0; i < 3; i++ {
 		if ctx.Err() == context.Canceled {
 			log.Println("Client cancelled the request")
+
 			return nil, status.Error(codes.Canceled, "the client cancelled the request")
 		}
 		time.Sleep(1 * time.Second)

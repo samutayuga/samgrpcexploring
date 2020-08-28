@@ -22,7 +22,7 @@ Not HTTP /1.1
 * GET: to ask the content
 * POST: to send the content
 
-# HTTT/2
+# HTTP/2
 
 GRPC leverages http/2
 
@@ -82,7 +82,7 @@ Server will respond once the request completed.
 ### Bi Directional Streaming
 
 ![Bi Directional Streaming API](grpc_api_bidirectional_streaming.JPG)
->Client makes one request. Assuming the size of request is big, within one TCP connection client will send the request in chunks. Server repond in chunck as well.
+>Client makes one request. Assuming the size of request is big, within one TCP connection client will send the request in chunks. Server respond in chunck as well.
 
 ## How does it look in the code
 
@@ -118,11 +118,28 @@ service GreetService{
 
 ![gRPC vs REST performance](performance_claim.JPG)
 
-# Codes
+# Deadline
 
-## Unary
+In http/2, an API contract can have a timeout specification.
+The objective is to not let the request hold up for quite long time, especially for an expensive operation. The good news, this feature is implemented in very clean way. Both client and server need to follow a certain rule in order the request/response respect the deadline.
+> Basically, the client sets the deadline for how long it will wait for a reply from the server. How it is done in go is,
+```go
+
+clientDeadline := time.Now().Add(time.Duration(*deadlineMs) * time.Millisecond)
+ctx, cancel := context.WithDeadline(ctx, clientDeadline)
+```
+>A server needs to query if a certain request is no longer wanted, before it starts preparing the response. This makes sense especially when a request is involving the expensive operation
+How it is done in go is like
+```go
+if ctx.Err() == context.Canceled {
+	return status.New(codes.Canceled, "Client cancelled, abandoning.")
+}
+```
+
 
 # SSL
+
+![gRPC vs REST performance](ssl.JPG)
 
 ## Generate certificate autorithy key and trust
 
@@ -162,10 +179,36 @@ openssl req -passin pass:1111 -new -key server.key -out server.csr -subj "/CN=lo
 openssl x509 -req -passin pass:1111 -days 365 -in server.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out server.crt
 ```
 
-## Covert the server certificate to pem file
+## Convert the server certificate to pem file
 
 ### server.pem
 
 ```yaml
 openssl pkcs8 -topk8 -nocrypt -passin pass:1111 -in server.key -out server.pem
+```
+
+## Apply SSL on the codes
+
+# CRUD: gRPC - Cassandra
+
+>To create the keyspace for cassandra
+
+```yaml
+
+CREATE KEYSPACE IF NOT EXISTS samdb WITH REPLICATION ={'class': 'SimpleStrategy', 'replication_factor': 1};
+
+```
+
+>Create the table
+
+```yaml
+CREATE TABLE IF NOT exists blog_item (
+    id timeuuid,
+    author_id ascii,
+    title text,
+    content text,
+    PRIMARY KEY (id,author_id)
+) WITH CLUSTERING ORDER BY (author_id DESC)
+AND comment = 'This table stores all blogs';
+
 ```
