@@ -1,7 +1,5 @@
 syntax = "proto3";
 package blog;
-import "google/api/annotations.proto";
-
 option go_package = "blog/blogpb;blogpb";
 
 message Blog{
@@ -43,20 +41,3 @@ message ListBlogRequest{
 message ListBlogResponse{
     Blog blog = 1;
 }
-service BlogService{
-    rpc CreateBlog (CreateBlogRequest) returns (CreateBlogResponse);
-    rpc ReadBlog(ReadBlogRequest) returns (ReadBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
-    //a specified ID does not exist
-    rpc UpdateBlog(UpdateBlogRequest) returns (UpdateBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
-    //a specified ID does not exist
-    rpc DeleteBlog(DeleteBlogRequest) returns (DeleteBlogResponse);
-    rpc ListBlog (ListBlogRequest) returns (stream ListBlogResponse){
-        option (google.api.http) = {
-            get: "/v1/samblog/list"
-        };
-    }
-    
-
-}
-
-

@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "blog/blogpb/blog.proto",
+    "title": "blog/blogpb/blog_service.proto",
     "version": "version not set"
   },
   "consumes": [

@@ -189,9 +189,23 @@ openssl pkcs8 -topk8 -nocrypt -passin pass:1111 -in server.key -out server.pem
 
 ## Apply SSL on the codes
 
+//TODO
+
 # CRUD: gRPC - Cassandra
 
+## Prerequisites
+
+> Deep knowledge on cassandra is not necessary. At least, the reader should know how to connect to cqlsh and run the cql. Please visit this <https://cassandra.apache.org/> to start working on cassandra.
+> Cassandra is up and running
+
+Develop a set of gRPC services to create, update, get, list and delete blog. The list blog API will show case the server streaming API where the gRPC server will retrieve all the blog from database then return it to the client in streaming fashion.
+To interact with the services, there is a command line interface provided by Evans CLI, <https://github.com/ktr0731/evans>. For those clients, that do not support the gRPC, the REST can be an option. This can be done, by extending the gRPC Gateway, <https://github.com/grpc-ecosystem/grpc-gateway> for the services that need to be exposed as a REST.
+
+## Preparing the database
+
 >To create the keyspace for cassandra
+
+Keyspace is the collection of table or (column family) in cassandra. This is the entry point for an application to access the table.
 
 ```yaml
 
@@ -200,6 +214,16 @@ CREATE KEYSPACE IF NOT EXISTS samdb WITH REPLICATION ={'class': 'SimpleStrategy'
 ```
 
 >Create the table
+
+In cassandra, normally table is referred as column family. Each table must have primary key, which has 2 parts,
+
+* partition key
+
+>this determines how data is distributed on each partition in the cassandra cluster. 
+
+* clustering column
+
+>this determines how the data positioned in each partition.
 
 ```yaml
 CREATE TABLE IF NOT exists blog_item (
@@ -212,3 +236,78 @@ CREATE TABLE IF NOT exists blog_item (
 AND comment = 'This table stores all blogs';
 
 ```
+
+>Primary key cannot be updated
+
+## Define the services
+
+In gRPC, the service is defined using the .proto file.
+Let assume this is the requirement for the blog server
+
+>As a blogger I want to create, update,get,delete and list blog
+
+```yaml
+syntax = "proto3";
+package blog;
+import "google/api/annotations.proto";
+
+option go_package = "blog/blogpb;blogpb";
+
+message Blog{
+    string id =1;
+    string author_id =2;
+    string title =3;
+    string content=4;
+}
+message CreateBlogRequest{
+    Blog blog=1;
+}
+
+message CreateBlogResponse{
+    Blog blog=2;
+}
+message ReadBlogRequest{
+    string blog_id = 1;
+}
+message ReadBlogResponse{
+    Blog blog = 1;
+}
+
+message UpdateBlogRequest{
+    Blog blog = 1;
+}
+message UpdateBlogResponse{
+    Blog blog = 1;
+}
+
+message DeleteBlogRequest{
+    string blog_id = 1;
+}
+message DeleteBlogResponse{
+    string blog_id = 1;
+}
+message ListBlogRequest{
+    
+}
+message ListBlogResponse{
+    Blog blog = 1;
+}
+service BlogService{
+    rpc CreateBlog (CreateBlogRequest) returns (CreateBlogResponse);
+    rpc ReadBlog(ReadBlogRequest) returns (ReadBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
+    //a specified ID does not exist
+    rpc UpdateBlog(UpdateBlogRequest) returns (UpdateBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
+    //a specified ID does not exist
+    rpc DeleteBlog(DeleteBlogRequest) returns (DeleteBlogResponse);
+    rpc ListBlog (ListBlogRequest) returns (stream ListBlogResponse){
+        option (google.api.http) = {
+            get: "/v1/samblog/list"
+        };
+    }
+    
+
+}
+
+
+```
+
