@@ -244,13 +244,39 @@ AND comment = 'This table stores all blogs';
 In gRPC, the service is defined using the .proto file.
 Let assume this is the requirement for the blog server
 
->As a blogger I want to create, update,get,delete and list blog
+>As a blogger I want to create,update,get,delete and list blog
+
+The service definition
 
 ```yaml
 syntax = "proto3";
 package blog;
 import "google/api/annotations.proto";
+import "blog/blogpb/blog_messages.proto";
 
+option go_package = "blog/blogpb;blogpb";
+
+
+service BlogService{
+    rpc CreateBlog (CreateBlogRequest) returns (CreateBlogResponse);
+    rpc ReadBlog(ReadBlogRequest) returns (ReadBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
+    //a specified ID does not exist
+    rpc UpdateBlog(UpdateBlogRequest) returns (UpdateBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
+    //a specified ID does not exist
+    rpc DeleteBlog(DeleteBlogRequest) returns (DeleteBlogResponse);
+    rpc ListBlog (ListBlogRequest) returns (stream ListBlogResponse){
+        option (google.api.http) = {
+            get: "/v1/samblog/list"
+        };
+    }
+}
+```
+
+The message definition
+
+```yaml
+syntax = "proto3";
+package blog;
 option go_package = "blog/blogpb;blogpb";
 
 message Blog{
@@ -292,22 +318,7 @@ message ListBlogRequest{
 message ListBlogResponse{
     Blog blog = 1;
 }
-service BlogService{
-    rpc CreateBlog (CreateBlogRequest) returns (CreateBlogResponse);
-    rpc ReadBlog(ReadBlogRequest) returns (ReadBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
-    //a specified ID does not exist
-    rpc UpdateBlog(UpdateBlogRequest) returns (UpdateBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
-    //a specified ID does not exist
-    rpc DeleteBlog(DeleteBlogRequest) returns (DeleteBlogResponse);
-    rpc ListBlog (ListBlogRequest) returns (stream ListBlogResponse){
-        option (google.api.http) = {
-            get: "/v1/samblog/list"
-        };
-    }
-    
-
-}
-
 
 ```
+
 
