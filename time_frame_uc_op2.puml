@@ -1,0 +1,55 @@
+@startuml
+title Blogging Use Cases
+skinparam backgroundColor #EEEBDC
+skinparam handwritten true
+skinparam actor {
+BorderColor black
+FontName Courier
+BackgroundColor<< Process >> Gold
+}
+skinparam note {
+BackgroundColor Pink
+BorderColor Pink
+}
+skinparam usecase {
+BackgroundColor<< Sending >> DarkSeaGreen
+BorderColor<< Sending >> DarkSeaGreen
+
+BackgroundColor YellowGreen
+BorderColor YellowGreen
+
+BackgroundColor<< Preparation >> Magenta
+BorderColor<< Preparation >> Magenta
+
+}
+'use cases
+
+
+
+'actor
+:Blogger\nUser: as buser << User >>
+:Blog\nClient: as system
+
+
+rectangle "Use Case" as wca{
+(Create Blog) as cb << Preparation >>
+(Read Blog) as rb << Preparation >>
+(Update Blog) as ub << Preparation >>
+(Delete Blog) as db << Preparation >>
+(List Blog) as lb << Preparation >>
+}
+
+left to right direction
+
+buser --> cb
+buser --> rb
+buser --> ub
+buser --> db
+buser --> lb
+
+cb <-- system
+rb <-- system
+ub <-- system
+db <-- system
+lb <-- system
+@enduml

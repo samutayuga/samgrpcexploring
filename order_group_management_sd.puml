@@ -1,0 +1,106 @@
+@startuml
+title Order Group Management
+autonumber
+
+skinparam backgroundColor #EEEBDC
+skinparam handwritten true
+
+skinparam sequence {
+ArrowColor DarkBlue
+ArrowFontSize 20
+ArrowFontColor blue
+ActorBorderColor MediumVioletRed
+LifeLineBorderColor blue
+LifeLineBackgroundColor #A9DCDF
+
+ParticipantBorderColor DeepSkyBlue
+ParticipantBackgroundColor<< PULL >> Cyan
+ParticipantBackgroundColor<< CAMPAIGN >> Orange
+ParticipantFontName Impact
+ParticipantFontSize 17
+ParticipantFontColor Blue
+
+ActorBackgroundColor aqua
+ActorFontColor Black
+ActorFontSize 20
+ActorFontName Impact
+}
+actor campaignadmin as ca
+participant CampaignLifeCycleManager as clc << CAMPAIGN >>
+participant CampaignProvisioner as cp << CAMPAIGN >>
+participant CampaignInfo as ci << CAMPAIGN >>
+participant OrderGroup as og << PULL >>
+ca -> cp: createCampaign()
+group campaignSchedule
+alt if needToStart
+
+clc -> ci: updateState("RUNNING")
+clc <- ci
+end
+
+clc -> og: initializeOrderGroup()
+note left
+POST /v1/order/group
+{
+"group_id": "32af558e-b78c-11ea-b3de-0242ac130004",
+"name": "Group for campaign XXXXX",
+"state": "RUNNING"
+}
+end note
+
+clc <- og: return OrderGroupID
+clc -> cp: startOrderCreation(OrderGroupID)
+
+group changestate
+
+ca -> ci: pausedCampaign("PAUSED",OrderGroupID)
+clc -> ci: readLatestState()
+clc -> og: updateState("PAUSED",OrderGroupID)
+note left
+PATCH /v1/order/group/{group_id}
+{
+"state": "PAUSED"
+}
+end note
+clc <- og
+
+ca -> ci: resumeCampaign("RUNNING",OrderGroupID)
+clc -> ci: readLatestState()
+clc -> og: updateState("RUNNING",OrderGroupID)
+note left
+PATCH /v1/order/group/{group_id}
+{
+"state": "RUNNING"
+}
+end note
+clc <- og
+
+ca -> ci: stopCampaign("ENDING",OrderGroupID)
+clc -> ci: readLatestState()
+'clc -> og: updateState("ENDING",OrderGroupID)
+'clc <- og
+
+group evaluateCampaingEnding
+clc -> ci: readEndingCondition()
+alt if endingConditionMet
+clc -> ci: stopCampaign("ENDING",OrderGroupID)
+'clc -> og: updateState("ENDING",OrderGroupID)
+'clc <- og
+end
+end
+
+group evaluateCampaignEnded
+clc -> ci: endCampaign("ENDED",OrderGroupID)
+clc -> og: updateState("ENDED",OrderGroupID)
+note left
+PATCH /v1/order/group/{group_id}
+{
+"state": "DELETED"
+}
+end note
+clc <- og
+end
+end
+
+end
+@enduml

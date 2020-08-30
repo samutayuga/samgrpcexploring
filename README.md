@@ -195,11 +195,14 @@ openssl pkcs8 -topk8 -nocrypt -passin pass:1111 -in server.key -out server.pem
 
 ## Prerequisites
 
-> Deep knowledge on cassandra is not necessary. At least, the reader should know how to connect to cqlsh and run the cql. Please visit this <https://cassandra.apache.org/> to start working on cassandra.
-> Cassandra is up and running
+> Deep knowledge on cassandra is not necessary.
+
+Knowing how to connect to cqlsh console and run the cql is sufficient. Please visit this <https://cassandra.apache.org/> for further detail on cassandra
 
 Develop a set of gRPC services to create, update, get, list and delete blog. The list blog API will show case the server streaming API where the gRPC server will retrieve all the blog from database then return it to the client in streaming fashion.
 To interact with the services, there is a command line interface provided by Evans CLI, <https://github.com/ktr0731/evans>. For those clients, that do not support the gRPC, the REST can be an option. This can be done, by extending the gRPC Gateway, <https://github.com/grpc-ecosystem/grpc-gateway> for the services that need to be exposed as a REST.
+
+> Cassandra is up and running
 
 ## Preparing the database
 
@@ -239,12 +242,21 @@ AND comment = 'This table stores all blogs';
 
 >Primary key cannot be updated
 
-## Define the services
+## Use Case
 
-In gRPC, the service is defined using the .proto file.
 Let assume this is the requirement for the blog server
 
 >As a blogger I want to create,update,get,delete and list blog
+
+More or less the use diagram below describes the use cases
+
+![Use Cases for Blogging](BloggingUseCases.png)
+
+## Define the services
+
+In gRPC, the service is defined using the .proto file.
+
+![gRPC vs REST performance](ServiceDefinition.png)
 
 The service definition
 

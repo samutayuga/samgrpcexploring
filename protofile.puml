@@ -1,0 +1,55 @@
+@startuml
+title Service Definition
+skinparam backgroundColor #EEEBDC
+skinparam handwritten true
+skinparam roundcorner 20
+left to right Direction
+skinparam class {
+BackgroundColor<< WORKER >> YellowGreen
+BackgroundColor<< EXECUTOR >> Cyan
+BackgroundColor Lightgrey
+ArrowColor SeaGreen
+BorderColor Black
+
+}
+skinparam note {
+BackgroundColor Pink
+BorderColor Pink
+}
+skinparam node {
+borderColor Green
+backgroundColor lightblue
+backgroundColor<<shared node>> lightgreen
+backgroundColor<< thm >> YellowGreen
+}
+node BlogServiceProto{
+class BlogService << (P,#FF7700) Proto >>{
++ CreateBlog
++ ReadBlog
++ UpdateBlog
++ DeleteBlog
++ ListBlog
+}
+}
+'node BlogMessageProto{
+   class Blog << (M,#FF7700) Proto >>
+   class CreateBlogRequest  << (M,#FF7700) Proto >>
+   class CreateBlogResponse << (M,#FF7700) Proto >>
+   class UpdateBlogRequest  << (M,#FF7700) Proto >>
+   class UpdateBlogResponse << (M,#FF7700) Proto >>
+   class GetBlogResponse    << (M,#FF7700) Proto >>
+   class GetBlogRequest << (M,#FF7700) Proto >>
+   class ListBlogResponse << (M,#FF7700) Proto >>
+   class ListBlogRequest << (M,#FF7700) Proto >>
+'}
+
+BlogService -left- Blog: import
+BlogService -- CreateBlogRequest: import
+CreateBlogResponse -- BlogService : import
+UpdateBlogRequest -- BlogService : import
+BlogService -- UpdateBlogResponse : import
+GetBlogRequest -- BlogService : import
+BlogService -- GetBlogResponse : import
+ListBlogRequest -- BlogService : import
+BlogService -- ListBlogResponse: import
+@enduml
