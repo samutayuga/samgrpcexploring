@@ -113,6 +113,20 @@ func BuildSelectStmt(t string, w []string, c ...string) string {
 	return s
 }
 
+//BuildDeleteStmt ...
+func BuildDeleteStmt(t string, w []string) string {
+	s := fmt.Sprintf("DELETE FROM %s ", t)
+
+	for i, wc := range w {
+		if i == 0 {
+			s = fmt.Sprintf("%s WHERE %s=?", s, wc)
+		} else {
+			s = fmt.Sprintf("%s AND %s=?", s, wc)
+		}
+	}
+	return s
+}
+
 //SubmitTrackingEvent insert the tracking event into table
 //iccid,
 //event_origin,
@@ -149,26 +163,37 @@ func (s *CQLService) SubmitTrackingEvent(ctx context.Context, req *cqlcrude.Subm
 	return &cqlcrude.SubmitTrackingEventResponse{SubmitStatus: 0}, nil
 }
 
+func retrieveTrackingByIccid(e *cqlcrude.TrackingEvent, iccid string) error {
+	var errGet error
+	if errGet = sandra.Csess.Query(eventGetCql, iccid).Consistency(gocql.One).Scan(&e.Iccid, //1
+		&e.EventOrigin,     //2
+		&e.EventType,       //3
+		&e.Imsi,            //4
+		&e.Msisdn,          //5
+		&e.NewImei,         //6
+		&e.NotifyStatus,    //7
+		&e.OldImei,         //8
+		&e.OperatorName,    //9
+		&e.SequenceNum,     //10
+		&e.ServiceEngine,   //11
+		&e.TacId,           //12
+		&e.TerminalProfile, //13
+		&e.TrackingStatus,  //14
+		&e.TrackingTime); errGet != nil {
+		if errGet.Error() == "not found" {
+			return status.Errorf(codes.NotFound, fmt.Sprintf("Tracking event with iccid=%v is not found", iccid))
+		}
+		return status.Errorf(codes.Internal, fmt.Sprintf("Error while retrieving id=%v.Server Error: %v", iccid, errGet))
+	}
+	return nil
+}
+
 //GetTrackingEvent ...
 func (s *CQLService) GetTrackingEvent(ctx context.Context, req *cqlcrude.GetTrackingEventRequest) (*cqlcrude.GetTrackingEventResponse, error) {
 	var errGet error
 	evt := cqlcrude.TrackingEvent{}
 
-	if errGet = sandra.Csess.Query(eventGetCql, req.GetIccid()).Consistency(gocql.One).Scan(&evt.Iccid, //1
-		&evt.EventOrigin,     //2
-		&evt.EventType,       //3
-		&evt.Imsi,            //4
-		&evt.Msisdn,          //5
-		&evt.NewImei,         //6
-		&evt.NotifyStatus,    //7
-		&evt.OldImei,         //8
-		&evt.OperatorName,    //9
-		&evt.SequenceNum,     //10
-		&evt.ServiceEngine,   //11
-		&evt.TacId,           //12
-		&evt.TerminalProfile, //13
-		&evt.TrackingStatus,  //14
-		&evt.TrackingTime); errGet == nil {
+	if errGet = retrieveTrackingByIccid(&evt, req.Iccid); errGet == nil {
 		return &cqlcrude.GetTrackingEventResponse{TrackingEvent: &evt}, nil
 
 	}
@@ -205,7 +230,15 @@ func (s *CQLService) ListAllTrackingEvents(req *cqlcrude.ListTrackingEventReques
 
 //DeleteTrackingEvent ...
 func (s *CQLService) DeleteTrackingEvent(ctx context.Context, req *cqlcrude.DeleteTrackingEventRequest) (*cqlcrude.DeleteTrackingEventResponse, error) {
-	return nil, nil
+	if doesExist := retrieveTrackingByIccid(&cqlcrude.TrackingEvent{}, req.Iccid); doesExist != nil {
+		return &cqlcrude.DeleteTrackingEventResponse{OperationStatus: -1}, doesExist
+
+	}
+	if err := sandra.Csess.Query(eventDeleteCql, req.GetIccid()).Exec(); err != nil {
+		return &cqlcrude.DeleteTrackingEventResponse{OperationStatus: -1}, err
+	}
+	return &cqlcrude.DeleteTrackingEventResponse{Iccid: req.GetIccid(), OperationStatus: 0}, nil
+
 }
 
 func init() {
@@ -261,7 +294,7 @@ func init() {
 		CTRACKST,
 		CTRACTTM)
 	log.Printf("GET CQL %s ", eventGetCql)
-	eventDeleteCql = fmt.Sprintf(eventDeleteCql, IMEILatestTabl)
+	eventDeleteCql = BuildDeleteStmt(IMEILatestTabl, []string{"iccid"})
 	log.Printf("Delete CQL %s ", eventDeleteCql)
 	eventListCql = BuildSelectStmt(IMEILatestTabl, []string{},
 		CID,
