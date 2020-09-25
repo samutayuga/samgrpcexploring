@@ -1,0 +1,23 @@
+syntax = "proto3";
+package cqlcrude;
+import "cqlcrude/cqlcrudepb/cqlcrude_messages.proto";
+
+option go_package = "cqlcrude/cqlcrudepb;cqlcrude";
+// Is  a service to expose the CRUD feature on cassandra
+service CrudeService {
+
+  // This is the service to create the event
+  rpc SubmitTrackingEvent(SubmitTrackingEventRequest)
+      returns (SubmitTrackingEventResponse);
+  // This is the service to delete the event
+  rpc DeleteTrackingEvent(DeleteTrackingEventRequest)
+      returns (DeleteTrackingEventResponse);
+  // This is to list all events
+  rpc ListAllTrackingEvents(ListTrackingEventRequest)
+      returns (stream ListTrackingEventResponse);
+
+  // This is get the single event
+
+  rpc GetTrackingEvent(GetTrackingEventRequest)
+      returns (GetTrackingEventResponse);
+}

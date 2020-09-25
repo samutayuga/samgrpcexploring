@@ -1,0 +1,48 @@
+syntax = "proto3";
+package cqlcrude;
+option go_package = "cqlcrude/cqlcrudepb;cqlcrude";
+// the model of the data to be stored into cassandra
+// iccid ascii PRIMARY KEY,
+// event_origin ascii, event_type ascii, imsi ascii, msisdn ascii, new_imei
+// ascii,
+//    notify_status ascii, old_imei ascii, operator_name ascii,
+//    sequence_num ascii, service_engine ascii, tac_id ascii,
+//    terminal_profile ascii, tracking_status ascii,
+//   tracking_time timestamp
+message TrackingEvent {
+  string iccid = 1;
+  string event_origin = 2;
+  string event_type = 3;
+  string imsi = 4;
+  string msisdn = 5;
+  string new_imei = 6;
+  string notify_status = 7;
+  string old_imei = 8;
+  string operator_name = 9;
+  string sequence_num = 10;
+  string service_engine = 11;
+  string tac_id = 12;
+  string terminal_profile = 13;
+  string tracking_status = 14;
+  int64 tracking_time = 15;
+}
+
+// message for delete tracking payload
+
+message DeleteTrackingEventRequest { string iccid = 1; }
+// message for delete tracking response
+message DeleteTrackingEventResponse {
+  string iccid = 1;
+  int32 operation_status = 2;
+}
+message SubmitTrackingEventRequest { TrackingEvent tracking_event = 1; }
+message ListTrackingEventRequest {}
+
+message ListTrackingEventResponse { TrackingEvent tracking_event = 1; }
+// the response after submitting tracking event,0 is OK otherwise it is bad
+message SubmitTrackingEventResponse { int32 submit_status = 1; }
+
+// message for get tracking event
+message GetTrackingEventRequest { string iccid = 1; }
+// message for get tracking event response
+message GetTrackingEventResponse { TrackingEvent tracking_event = 1; }

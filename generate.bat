@@ -8,8 +8,11 @@ REM protoc greet\greetpb\greet.proto --go_out=plugins=grpc:.
 
 REM protoc calculator\calculatorpb\calculator.proto --go_out=plugins=grpc:.
 
-protoc --proto_path=C:\apps\protoc-3.11.4-win64\include -I. -I%GOPATH%\src\github.com\grpc-ecosystem\grpc-gateway\third_party\googleapis --go_out=plugins=grpc:. blog\blogpb\*.proto
+REM protoc --proto_path=C:\apps\protoc-3.11.4-win64\include -I. -I%GOPATH%\src\github.com\grpc-ecosystem\grpc-gateway\third_party\googleapis --go_out=plugins=grpc:. calculator\calculatorpb\*.proto
+REM protoc --proto_path=C:\apps\protoc-3.11.4-win64\include -I. -I%GOPATH%\src\github.com\grpc-ecosystem\grpc-gateway\third_party\googleapis --go_out=plugins=grpc:. blog\blogpb\*.proto
 
-protoc --proto_path=C:\apps\protoc-3.11.4-win64\include -I. -I%GOPATH%\src\github.com\grpc-ecosystem\grpc-gateway\third_party\googleapis --grpc-gateway_out=logtostderr=true,paths=source_relative:. blog\blogpb\*.proto
+REM protoc --proto_path=C:\apps\protoc-3.11.4-win64\include -I. -I%GOPATH%\src\github.com\grpc-ecosystem\grpc-gateway\third_party\googleapis --grpc-gateway_out=logtostderr=true,paths=source_relative:. blog\blogpb\*.proto
 
-protoc -I. -I%GOPATH%\src\github.com\grpc-ecosystem\grpc-gateway\third_party\googleapis --swagger_out=logtostderr=true:. blog\blogpb\*.proto
+REM protoc -I. -I%GOPATH%\src\github.com\grpc-ecosystem\grpc-gateway\third_party\googleapis --swagger_out=logtostderr=true:. blog\blogpb\*.proto
+
+protoc --proto_path=C:\apps\protoc-3.11.4-win64\include -I. -I%GOPATH%\src\github.com\grpc-ecosystem\grpc-gateway\third_party\googleapis --go_out=plugins=grpc:. cqlcrude\cqlcrudepb\*.proto
