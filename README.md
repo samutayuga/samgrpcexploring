@@ -13,76 +13,80 @@ Example:
 # HTTP/1.1
 
 Not HTTP /1.1
->released in 1997, a long time ago
->opens a new TCP connection to a server at each request
->it does not compress header (which are plaint text)
->it only works with Request / Response mechanism (no server push)
->http was originally composed of two commands
 
-* GET: to ask the content
-* POST: to send the content
+> released in 1997, a long time ago
+> opens a new TCP connection to a server at each request
+> it does not compress header (which are plaint text)
+> it only works with Request / Response mechanism (no server push)
+> http was originally composed of two commands
+
+- GET: to ask the content
+- POST: to send the content
 
 # HTTP/2
 
 GRPC leverages http/2
 
-* Released in 2015 (SPDY)
-* Supports multiplexing
+- Released in 2015 (SPDY)
+- Supports multiplexing
 
->The client & server can push messages in parallel over the same TCP connection
->This greatly reduces the latency
+> The client & server can push messages in parallel over the same TCP connection
+> This greatly reduces the latency
 
-* Support server push
+- Support server push
 
->Servers can push streams (multiple messages) for one request from the client
->This will reduce the round trips and latency
+> Servers can push streams (multiple messages) for one request from the client
+> This will reduce the round trips and latency
 
-* Support header compression
+- Support header compression
 
 > Headers (text based) can now be compressed
 > This has much impact on the packet size
 > Remember each request has over 20 headers, due to cookies, caches and application headers
 
-* It is a binary
+- It is a binary
 
 > HTTP/1 is a text that is easy to debug, but not efficient over the network
 > Protocol buffer is a binary protocol and makes great match for HTTP/2
 
-* HTTP/2 is secure (SSL is not required but it is recommended by default)
+- HTTP/2 is secure (SSL is not required but it is recommended by default)
 
 ## HTTP/2 Bottom Line
 
-* Less chatter
-* More efficient protocol
-* Reduced latency
-* Increased Security
+- Less chatter
+- More efficient protocol
+- Reduced latency
+- Increased Security
 
 > And you get all these improvement out of the box by using the GRPC framework
 
 ## GRPC Type API
 
-### Uniry
+### Unary
 
 ![Unary API](grpc_api_unary.JPG)
 
->It is the traditional request/response model.
-One client request with one response from the server
+> It is the traditional request/response model.
+> One client request with one response from the server
 
 ### Server Streaming
 
 ![Server Streaming API](grpc_api_svr_streaming.JPG)
->Client makes one request. Assuming the size of response is big, within one TCP connection servers will send the response in chunks.
+
+> Client makes one request. Assuming the size of response is big, within one TCP connection servers will send the response in chunks.
 
 ### Client Streaming
 
 ![Client Streaming API](grpc_api_client_streaming.JPG)
->Client makes one request. Assuming the size of request is big, within one TCP connection client will send the request in chunks.
-Server will respond once the request completed.
+
+> Client makes one request. Assuming the size of request is big, within one TCP connection client will send the request in chunks.
+> Server will respond once the request completed.
 
 ### Bi Directional Streaming
 
 ![Bi Directional Streaming API](grpc_api_bidirectional_streaming.JPG)
->Client makes one request. Assuming the size of request is big, within one TCP connection client will send the request in chunks. Server respond in chunck as well.
+
+> Client makes one request. Assuming the size of request is big, within one TCP connection client will send the request in chunks. Server respond in chunck as well.
 
 ## How does it look in the code
 
@@ -104,15 +108,15 @@ service GreetService{
 
 ![REST request/response](RESTsample.JPG)
 
-| GRPC         | REST            |
-| ------------ |:--------------------:|
-| Protocol Buffer - Smaller, faster           | JSON - text based, slower, bigger   |
-| HTTP/2 (lower latency) - from 2015 | HTTP/ 1.1 (higher latency) - from 1997 |
-| Bi-Directional & Async | Client => Server request only |
-| Stream Support | Request/Response support only |
-| API Oriented - "What" (no constraints - free design) | CRUD oriented (Create-Retrieve-Update-Delete/ POST GET PUT DELETE) |
-| Code Generation through Protocol Buffers in any language - 1st class citizen | Code generation through OpenAPI /Swagger (add-on) - 2nd class citizen |
-| RPC Based - gRPC does the plumbing for us | HTTP verbs based - we have to write the plumbing or use a 3rd party library |
+| GRPC                                                                         |                                    REST                                     |
+| ---------------------------------------------------------------------------- | :-------------------------------------------------------------------------: |
+| Protocol Buffer - Smaller, faster                                            |                      JSON - text based, slower, bigger                      |
+| HTTP/2 (lower latency) - from 2015                                           |                   HTTP/ 1.1 (higher latency) - from 1997                    |
+| Bi-Directional & Async                                                       |                        Client => Server request only                        |
+| Stream Support                                                               |                        Request/Response support only                        |
+| API Oriented - "What" (no constraints - free design)                         |     CRUD oriented (Create-Retrieve-Update-Delete/ POST GET PUT DELETE)      |
+| Code Generation through Protocol Buffers in any language - 1st class citizen |    Code generation through OpenAPI /Swagger (add-on) - 2nd class citizen    |
+| RPC Based - gRPC does the plumbing for us                                    | HTTP verbs based - we have to write the plumbing or use a 3rd party library |
 
 ### Performance
 
@@ -122,20 +126,23 @@ service GreetService{
 
 In http/2, an API contract can have a timeout specification.
 The objective is to not let the request hold up for quite long time, especially for an expensive operation. The good news, this feature is implemented in very clean way. Both client and server need to follow a certain rule in order the request/response respect the deadline.
+
 > Basically, the client sets the deadline for how long it will wait for a reply from the server. How it is done in go is,
+
 ```go
 
 clientDeadline := time.Now().Add(time.Duration(*deadlineMs) * time.Millisecond)
 ctx, cancel := context.WithDeadline(ctx, clientDeadline)
 ```
->A server needs to query if a certain request is no longer wanted, before it starts preparing the response. This makes sense especially when a request is involving the expensive operation
-How it is done in go is like
+
+> A server needs to query if a certain request is no longer wanted, before it starts preparing the response. This makes sense especially when a request is involving the expensive operation
+> How it is done in go is like
+
 ```go
 if ctx.Err() == context.Canceled {
 	return status.New(codes.Canceled, "Client cancelled, abandoning.")
 }
 ```
-
 
 # SSL
 
@@ -206,7 +213,7 @@ To interact with the services, there is a command line interface provided by Eva
 
 ## Preparing the database
 
->To create the keyspace for cassandra
+> To create the keyspace for cassandra
 
 Keyspace is the collection of table or (column family) in cassandra. This is the entry point for an application to access the table.
 
@@ -216,37 +223,36 @@ CREATE KEYSPACE IF NOT EXISTS samdb WITH REPLICATION ={'class': 'SimpleStrategy'
 
 ```
 
->Create the table
+> Create the table
 
 In cassandra, normally table is referred as column family. Each table must have primary key, which has 2 parts,
 
-* partition key
+- partition key
 
->this determines how data is distributed on each partition in the cassandra cluster. 
+> this determines how data is distributed on each partition in the cassandra cluster.
 
-* clustering column
+- clustering column
 
->this determines how the data positioned in each partition.
+> this determines how the data positioned in each partition.
 
 ```yaml
 CREATE TABLE IF NOT exists blog_item (
-    id timeuuid,
-    author_id ascii,
-    title text,
-    content text,
-    PRIMARY KEY (id,author_id)
+id timeuuid,
+author_id ascii,
+title text,
+content text,
+PRIMARY KEY (id,author_id)
 ) WITH CLUSTERING ORDER BY (author_id DESC)
 AND comment = 'This table stores all blogs';
-
 ```
 
->Primary key cannot be updated
+> Primary key cannot be updated
 
 ## Use Case
 
 Let assume this is the requirement for the blog server
 
->As a blogger I want to create,update,get,delete and list blog
+> As a blogger I want to create,update,get,delete and list blog
 
 More or less the use diagram below describes the use cases
 
@@ -271,9 +277,9 @@ option go_package = "blog/blogpb;blogpb";
 
 service BlogService{
     rpc CreateBlog (CreateBlogRequest) returns (CreateBlogResponse);
-    rpc ReadBlog(ReadBlogRequest) returns (ReadBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
+    rpc ReadBlog(ReadBlogRequest) returns (ReadBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with
     //a specified ID does not exist
-    rpc UpdateBlog(UpdateBlogRequest) returns (UpdateBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with 
+    rpc UpdateBlog(UpdateBlogRequest) returns (UpdateBlogResponse);//RETURN BLOG_NOT_FOUND if a blog with
     //a specified ID does not exist
     rpc DeleteBlog(DeleteBlogRequest) returns (DeleteBlogResponse);
     rpc ListBlog (ListBlogRequest) returns (stream ListBlogResponse){
@@ -292,45 +298,42 @@ package blog;
 option go_package = "blog/blogpb;blogpb";
 
 message Blog{
-    string id =1;
-    string author_id =2;
-    string title =3;
-    string content=4;
+string id =1;
+string author_id =2;
+string title =3;
+string content=4;
 }
 message CreateBlogRequest{
-    Blog blog=1;
+Blog blog=1;
 }
 
 message CreateBlogResponse{
-    Blog blog=2;
+Blog blog=2;
 }
 message ReadBlogRequest{
-    string blog_id = 1;
+string blog_id = 1;
 }
 message ReadBlogResponse{
-    Blog blog = 1;
+Blog blog = 1;
 }
 
 message UpdateBlogRequest{
-    Blog blog = 1;
+Blog blog = 1;
 }
 message UpdateBlogResponse{
-    Blog blog = 1;
+Blog blog = 1;
 }
 
 message DeleteBlogRequest{
-    string blog_id = 1;
+string blog_id = 1;
 }
 message DeleteBlogResponse{
-    string blog_id = 1;
+string blog_id = 1;
 }
 message ListBlogRequest{
-    
+
 }
 message ListBlogResponse{
-    Blog blog = 1;
+Blog blog = 1;
 }
-
 ```
-
-

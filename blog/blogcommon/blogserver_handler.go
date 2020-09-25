@@ -7,8 +7,14 @@ import (
 
 	"github.com/gocql/gocql"
 	"github.com/samutayuga/samgrpcexploring/blog/blogpb"
+	"github.com/samutayuga/samgrpcexploring/sandra"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+)
+
+const (
+	blogKs    = "samdb"
+	blogTable = "blog_item"
 )
 
 //Server ...
@@ -22,7 +28,7 @@ func (s *Server) CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) 
 	bID := gocql.TimeUUID()
 	bRaw.Id = bID.String()
 	//DB
-	if err := csess.Query(`INSERT INTO blog_item (id,author_id,title,content) VALUES(?,?,?,?)`,
+	if err := sandra.Csess.Query(`INSERT INTO blog_item (id,author_id,title,content) VALUES(?,?,?,?)`,
 		bID, bRaw.GetAuthorId(), bRaw.GetTitle(), bRaw.GetContent()).Exec(); err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Error while inserting a blog with author= %s,title=%s, %v", bRaw.GetAuthorId(), bRaw.GetTitle(), err))
 		//log.Fatalf("Error while inserting a blog with author= %s,title=%s, %v", bRaw.GetAuthorId(), bRaw.GetTitle(), err)
@@ -38,7 +44,7 @@ func FindBlogByID(blogID gocql.UUID) (*blogpb.Blog, error) {
 	var errReading error
 	b := blogpb.Blog{}
 
-	if errReading = csess.Query(`SELECT author_id,title,content FROM blog_item WHERE id=?`, blogID).Consistency(gocql.One).Scan(
+	if errReading = sandra.Csess.Query(`SELECT author_id,title,content FROM blog_item WHERE id=?`, blogID).Consistency(gocql.One).Scan(
 		&b.AuthorId, &b.Title, &b.Content); errReading == nil {
 
 		return &b, nil
@@ -84,7 +90,7 @@ func (s *Server) UpdateBlog(ctx context.Context, req *blogpb.UpdateBlogRequest) 
 		if oldBlg, anyEror = FindBlogByID(bID); anyEror == nil {
 			//update
 			log.Printf("Found existing blog %v", oldBlg)
-			if anyEror = csess.Query(`UPDATE blog_item set content=? WHERE id=? and author_id=?`,
+			if anyEror = sandra.Csess.Query(`UPDATE blog_item set content=? WHERE id=? and author_id=?`,
 				req.GetBlog().GetContent(),
 				bID,
 				req.GetBlog().GetAuthorId()).Exec(); anyEror == nil {
@@ -109,7 +115,7 @@ func (s *Server) DeleteBlog(ctx context.Context, req *blogpb.DeleteBlogRequest) 
 		if oldBlg, anyEror = FindBlogByID(bID); anyEror == nil {
 			//update
 			log.Printf("Found existing blog %v", oldBlg)
-			if anyEror = csess.Query(`DELETE FROM blog_item WHERE id=?`,
+			if anyEror = sandra.Csess.Query(`DELETE FROM blog_item WHERE id=?`,
 				bID).Exec(); anyEror == nil {
 				log.Printf("Delete successfull %s", req.GetBlogId())
 				return &blogpb.DeleteBlogResponse{BlogId: req.GetBlogId()}, nil
@@ -121,7 +127,7 @@ func (s *Server) DeleteBlog(ctx context.Context, req *blogpb.DeleteBlogRequest) 
 
 //ListBlog ...
 func (s *Server) ListBlog(req *blogpb.ListBlogRequest, stream blogpb.BlogService_ListBlogServer) error {
-	iter := csess.Query(`SELECT id,author_id,title,content FROM blog_item`).Iter()
+	iter := sandra.Csess.Query(`SELECT id,author_id,title,content FROM blog_item`).Iter()
 	defer iter.Close()
 	var blogID gocql.UUID
 	blgFromDB := blogpb.Blog{}
@@ -132,4 +138,17 @@ func (s *Server) ListBlog(req *blogpb.ListBlogRequest, stream blogpb.BlogService
 
 	return nil
 
+}
+
+//GetKeySpace ...
+func GetKeySpace() string {
+	return blogKs
+}
+
+//GetBlogTable ...
+func GetBlogTable() string {
+	return blogTable
+}
+func init() {
+	log.Println("initialize the blog common")
 }

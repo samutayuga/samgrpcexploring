@@ -1,65 +1,41 @@
-syntax= "proto3";
+syntax = "proto3";
 package calculator;
 option go_package = "calculator/calculatorpb;calculatorpb";
 
-message Operand{
-    int32 first_operand=1;
-    int32 second_operand=2;
+message Operand {
+  int32 first_operand = 1;
+  int32 second_operand = 2;
 }
 
-message NumnerInput{
-    int64 number_input=1;
+message NumnerInput { int64 number_input = 1; }
+
+message AvgInput { double avg_input = 1; }
+
+message OperationRequest { Operand operand = 1; }
+
+message DecomposeRequest { NumnerInput input = 1; }
+
+message AverageRequest { AvgInput avg_input = 1; }
+message AverageResponse { double average = 1; }
+message OperationResponse { int32 result = 1; }
+message DecomposeResponse { int64 prime_number = 1; }
+message Maximum { int32 max_input = 1; }
+message MaximumRequest { Maximum max_input = 1; }
+message MaximumResponse { int32 max_out = 1; }
+message RootSquareRequest { int32 number = 1; }
+message RootSquareResponse {
+  int32 input = 1;
+  double root_square = 2;
 }
 
-message AvgInput{
-   double avg_input=1; 
-}
-
-message OperationRequest{
-    Operand operand = 1;
-}
-
-message DecomposeRequest{
-    NumnerInput input=1;
-}
-
-message AverageRequest{
-    AvgInput avg_input = 1;
-}
-message AverageResponse{
-    double average = 1;
-}
-message OperationResponse{
-    int32 result = 1;
-}
-message DecomposeResponse{
-    int64 prime_number = 1;
-}
-message Maximum{
-    int32 max_input=1;
-}
-message MaximumRequest{
-    Maximum max_input=1;
-}
-message MaximumResponse{
-    int32 max_out=1;
-}
-message RootSquareRequest{
-    int32 number=1;
-}
-message RootSquareResponse{
-    int32 input =1;
-    double root_square=2;
-}
-
-service CalculatorService{
-    rpc calculate (OperationRequest) returns (OperationResponse);
-    rpc decompose (DecomposeRequest) returns (stream DecomposeResponse);
-    rpc average (stream AverageRequest) returns (AverageResponse);
-    rpc maximum (stream MaximumRequest) returns (stream MaximumResponse);
-    //Error handling
-    //This rpc will throw an exception if the sent number is negative
-    //The error being sent is of type INVALID_ARGUMENT
-    rpc rootSquare(stream RootSquareRequest) returns (stream RootSquareResponse);
-   // rpc sumPrime(SumPrimeRequest) returns (SumPrimeResponse);
+service CalculatorService {
+  rpc calculate(OperationRequest) returns (OperationResponse);
+  rpc decompose(DecomposeRequest) returns (stream DecomposeResponse);
+  rpc average(stream AverageRequest) returns (AverageResponse);
+  rpc maximum(stream MaximumRequest) returns (stream MaximumResponse);
+  // Error handling
+  // This rpc will throw an exception if the sent number is negative
+  // The error being sent is of type INVALID_ARGUMENT
+  rpc rootSquare(stream RootSquareRequest) returns (stream RootSquareResponse);
+  // rpc sumPrime(SumPrimeRequest) returns (SumPrimeResponse);
 }

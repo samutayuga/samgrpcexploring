@@ -1052,9 +1052,9 @@ type CalculatorServiceClient interface {
 	Decompose(ctx context.Context, in *DecomposeRequest, opts ...grpc.CallOption) (CalculatorService_DecomposeClient, error)
 	Average(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_AverageClient, error)
 	Maximum(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_MaximumClient, error)
-	//Error handling
-	//This rpc will throw an exception if the sent number is negative
-	//The error being sent is of type INVALID_ARGUMENT
+	// Error handling
+	// This rpc will throw an exception if the sent number is negative
+	// The error being sent is of type INVALID_ARGUMENT
 	RootSquare(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_RootSquareClient, error)
 }
 
@@ -1209,9 +1209,9 @@ type CalculatorServiceServer interface {
 	Decompose(*DecomposeRequest, CalculatorService_DecomposeServer) error
 	Average(CalculatorService_AverageServer) error
 	Maximum(CalculatorService_MaximumServer) error
-	//Error handling
-	//This rpc will throw an exception if the sent number is negative
-	//The error being sent is of type INVALID_ARGUMENT
+	// Error handling
+	// This rpc will throw an exception if the sent number is negative
+	// The error being sent is of type INVALID_ARGUMENT
 	RootSquare(CalculatorService_RootSquareServer) error
 }
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/samutayuga/samgrpcexploring/blog/blogcommon"
 	"github.com/samutayuga/samgrpcexploring/blog/blogpb"
+	"github.com/samutayuga/samgrpcexploring/sandra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -27,7 +28,7 @@ func main() {
 	go func() {
 		fmt.Println("Server starting....")
 		//connect to db
-		blogcommon.Csessinit()
+		sandra.Csessinit(blogcommon.GetKeySpace())
 		if err := s.Serve(lis); err != nil {
 			log.Fatalf("failed to server %v", err)
 		}
@@ -38,7 +39,7 @@ func main() {
 	signal.Notify(ch, os.Interrupt)
 	<-ch
 	//disconnect from db
-	blogcommon.Csessclose()
+	sandra.Csessclose()
 	fmt.Println("Stopping the server")
 	s.Stop()
 	fmt.Println("Closing the listener")
