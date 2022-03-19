@@ -18,10 +18,12 @@ const (
 	sqlSelectTpl         = `SELECT id,author_id,title,content FROM blog_item WHERE id=$1;`
 	sqlUpdateTpl         = `UPDATE blog_item SET content=$1 WHERE id=$2 AND author_id=$3 RETURNING content;`
 	sqlUpdateNoReturnTpl = `UPDATE blog_item SET content=$1 WHERE id=$2 AND author_id=$3;`
+	sqlSelectAllTpl      = `SELECT id,author_id,title,content FROM blog_item LIMIT 1000;`
 )
 
 var (
-	db      *sql.DB
+	//Db ...
+	Db      *sql.DB
 	errConn error
 )
 
@@ -32,26 +34,26 @@ type BlogItem struct {
 	Content string
 }
 
-func init() {
+func Init() {
 	pgInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	if db, errConn = sql.Open("postgres", pgInfo); errConn != nil {
+	if Db, errConn = sql.Open("postgres", pgInfo); errConn != nil {
 		panic(errConn)
 	}
 
 }
 
 func PingDb() string {
-	if errPing := db.Ping(); errPing != nil {
+	if errPing := Db.Ping(); errPing != nil {
 		panic(errPing)
 	}
 	//defer db.Close()
 	log.Println("Connect to db successfully")
 	return "OK"
 }
-func InsertBlog(bl BlogItem) int {
+func InsertBlog(bl *BlogItem) int {
 	var lastInserted string
-	if errInsert := db.QueryRow(sqlInsertTpl, bl.BlogId, bl.Author, bl.Title, bl.Content).Scan(&lastInserted); errInsert != nil {
+	if errInsert := Db.QueryRow(sqlInsertTpl, bl.BlogId, bl.Author, bl.Title, bl.Content).Scan(&lastInserted); errInsert != nil {
 
 		log.Printf("error inserting record %v", errInsert)
 	} else {
@@ -61,7 +63,7 @@ func InsertBlog(bl BlogItem) int {
 	return 0
 }
 func DeleteSingleBlog(blogId string) int {
-	if r, errDel := db.Exec(sqlDeleteTpl, blogId); errDel != nil {
+	if r, errDel := Db.Exec(sqlDeleteTpl, blogId); errDel != nil {
 		log.Printf("error deleting record %v\n", errDel)
 	} else {
 		if recordNum, errAccess := r.RowsAffected(); errAccess != nil {
@@ -72,28 +74,27 @@ func DeleteSingleBlog(blogId string) int {
 	}
 	return 0
 }
-func SelectBlogById(blogId string) BlogItem {
-	row := db.QueryRow(sqlSelectTpl, blogId)
+func SelectBlogById(blogId string) *BlogItem {
+	row := Db.QueryRow(sqlSelectTpl, blogId)
 	var id, author, title, content string
-	var bl BlogItem
 	switch err := row.Scan(&id, &author, &title, &content); err {
 	case sql.ErrNoRows:
 		log.Printf("No record returned with id %s\n", blogId)
-		return bl
+		return &BlogItem{}
 	case nil:
-		bl = BlogItem{id, author, title, content}
+		bl := BlogItem{id, author, title, content}
 		log.Printf("Got %v ", bl)
-		return bl
+		return &bl
 	default:
 		log.Fatalf("Error %v", err)
 
 	}
 
-	return bl
+	return nil
 }
 func UpdateBlogWithReturn(id string, author string, content string) int {
 	var newContent string
-	if errUpdate := db.QueryRow(sqlUpdateTpl, content, id, author).Scan(&newContent); errUpdate != nil {
+	if errUpdate := Db.QueryRow(sqlUpdateTpl, content, id, author).Scan(&newContent); errUpdate != nil {
 		panic(errUpdate)
 	} else {
 		if content == newContent {
@@ -104,7 +105,7 @@ func UpdateBlogWithReturn(id string, author string, content string) int {
 }
 
 func UpdateBlogWithAffectedRecords(id string, author string, content string) int {
-	if r, updateErr := db.Exec(sqlUpdateNoReturnTpl, content, id, author); updateErr != nil {
+	if r, updateErr := Db.Exec(sqlUpdateNoReturnTpl, content, id, author); updateErr != nil {
 		panic(updateErr)
 	} else {
 		if rCount, errFetch := r.RowsAffected(); errFetch != nil {
@@ -114,4 +115,26 @@ func UpdateBlogWithAffectedRecords(id string, author string, content string) int
 		}
 	}
 	return 0
+}
+func SelectAll() []BlogItem {
+	if rows, err := Db.Query(sqlSelectAllTpl); err != nil {
+		panic(err)
+	} else {
+		defer rows.Close()
+		allBls := make([]BlogItem, 0)
+		for rows.Next() {
+			var id, author, title, content string
+			if errSc := rows.Scan(&id, &author, &title, &content); errSc != nil {
+				panic(errSc)
+			} else {
+				allBls = append(allBls, BlogItem{id, author, title, content})
+			}
+
+		}
+		return allBls
+	}
+	return nil
+}
+func CloseDb() {
+	Db.Close()
 }

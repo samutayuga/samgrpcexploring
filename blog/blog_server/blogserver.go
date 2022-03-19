@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/samutayuga/samgrpcexploring/pg"
 	"log"
 	"net"
 	"os"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/samutayuga/samgrpcexploring/blog/blogcommon"
 	"github.com/samutayuga/samgrpcexploring/blog/blogpb"
-	"github.com/samutayuga/samgrpcexploring/sandra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -23,12 +23,13 @@ func main() {
 	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
 	reflection.Register(s)
-	blogpb.RegisterBlogServiceServer(s, &blogcommon.Server{})
+	blogpb.RegisterBlogServiceServer(s, &blogcommon.PgBlogServer{})
 	log.Println("service is registered")
 	go func() {
 		fmt.Println("Server starting....")
 		//connect to db
-		sandra.Csessinit(blogcommon.GetKeySpace())
+		pg.Init()
+		pg.PingDb()
 		if err := s.Serve(lis); err != nil {
 			log.Fatalf("failed to server %v", err)
 		}
@@ -39,7 +40,7 @@ func main() {
 	signal.Notify(ch, os.Interrupt)
 	<-ch
 	//disconnect from db
-	sandra.Csessclose()
+	pg.CloseDb()
 	fmt.Println("Stopping the server")
 	s.Stop()
 	fmt.Println("Closing the listener")
