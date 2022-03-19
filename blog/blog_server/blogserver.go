@@ -20,7 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen %v", err)
 	}
-	opts := []grpc.ServerOption{}
+	var opts []grpc.ServerOption
 	s := grpc.NewServer(opts...)
 	reflection.Register(s)
 	blogpb.RegisterBlogServiceServer(s, &blogcommon.Server{})

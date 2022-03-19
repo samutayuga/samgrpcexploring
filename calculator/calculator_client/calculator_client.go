@@ -31,6 +31,8 @@ func main() {
 	inputs = make([]int, 0)
 	inputs = append(inputs, 5, 10, 240, 225, 256)
 	findSquareRoot(c, inputs)
+
+	doServerStreaming(c)
 }
 
 func doServerStreaming(c calculatorpb.CalculatorServiceClient) {

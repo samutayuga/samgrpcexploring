@@ -337,3 +337,19 @@ message ListBlogResponse{
 Blog blog = 1;
 }
 ```
+```postgresql
+CREATE TABLE IF NOT exists blog_item (
+     id uuid,
+    author_id text,
+    title text,
+    content text,
+    PRIMARY KEY (id,author_id)
+) ;
+comment on table blog_item is 'This table stores all blogs';
+```
+
+## Kubernetes cheat chat
+
+```text
+kubectl run {{POD_name}}} --rm --tty -i --restart='Never' --namespace default --image {{docker_image}}} --env="PGPASSWORD=$POSTGRES_PASSWORD" --command -- psql --host atwin-postgres -U postgres -d atwin -p 5432
+```
