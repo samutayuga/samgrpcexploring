@@ -1,22 +1,39 @@
 syntax = "proto3";
-package cqlcrude;
+package blog;
 import "google/api/annotations.proto";
 import "blog/blogpb/blog_messages.proto";
 
 option go_package = "blog/blogpb;blogpb";
 
 service BlogService {
-  rpc CreateBlog(CreateBlogRequest) returns (CreateBlogResponse);
+  rpc CreateBlog(CreateBlogRequest) returns (CreateBlogResponse){
+    option(google.api.http)={
+      post : "/v1/samblog"
+    };
+  };
   rpc ReadBlog(ReadBlogRequest)
-      returns (ReadBlogResponse); // RETURN BLOG_NOT_FOUND if a blog with
+      returns (ReadBlogResponse){
+    option (google.api.http)={
+      get : "/v1/samblog/{blog_id}"
+    };
+  }; // RETURN BLOG_NOT_FOUND if a blog with
   // a specified ID does not exist
   rpc UpdateBlog(UpdateBlogRequest)
-      returns (UpdateBlogResponse); // RETURN BLOG_NOT_FOUND if a blog with
+      returns (UpdateBlogResponse){
+    option (google.api.http)={
+      patch : "/v1/samblog"
+    };
+  }; // RETURN BLOG_NOT_FOUND if a blog with
   // a specified ID does not exist
-  rpc DeleteBlog(DeleteBlogRequest) returns (DeleteBlogResponse);
+  rpc DeleteBlog(DeleteBlogRequest)
+      returns (DeleteBlogResponse) {
+    option (google.api.http) ={
+      delete : "/v1/samblog/{blog_id}"
+    };
+  };
   rpc ListBlog(ListBlogRequest) returns (stream ListBlogResponse) {
     option (google.api.http) = {
       get : "/v1/samblog/list"
     };
-  }
+  };
 }

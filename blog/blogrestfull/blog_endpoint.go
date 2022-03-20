@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"net/http"
 
 	"github.com/golang/glog"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	gw "github.com/samutayuga/samgrpcexploring/blog/blogpb"
 	"google.golang.org/grpc"
 )
