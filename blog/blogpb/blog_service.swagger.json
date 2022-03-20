@@ -4,6 +4,11 @@
     "title": "blog/blogpb/blog_service.proto",
     "version": "version not set"
   },
+  "tags": [
+    {
+      "name": "BlogService"
+    }
+  ],
   "consumes": [
     "application/json"
   ],
@@ -11,6 +16,101 @@
     "application/json"
   ],
   "paths": {
+    "/v1/samblog": {
+      "post": {
+        "operationId": "BlogService_CreateBlog",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/blogCreateBlogResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "blog.id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "blog.authorId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "blog.title",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "blog.content",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BlogService"
+        ]
+      },
+      "patch": {
+        "summary": "a specified ID does not exist",
+        "operationId": "BlogService_UpdateBlog",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/blogUpdateBlogResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "blog.id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "blog.authorId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "blog.title",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "blog.content",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BlogService"
+        ]
+      }
+    },
     "/v1/samblog/list": {
       "get": {
         "operationId": "BlogService_ListBlog",
@@ -24,19 +124,78 @@
                   "$ref": "#/definitions/blogListBlogResponse"
                 },
                 "error": {
-                  "$ref": "#/definitions/runtimeStreamError"
+                  "$ref": "#/definitions/rpcStatus"
                 }
               },
               "title": "Stream result of blogListBlogResponse"
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
+        "tags": [
+          "BlogService"
+        ]
+      }
+    },
+    "/v1/samblog/{blogId}": {
+      "get": {
+        "operationId": "BlogService_ReadBlog",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/blogReadBlogResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "blogId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "BlogService"
+        ]
+      },
+      "delete": {
+        "summary": "a specified ID does not exist",
+        "operationId": "BlogService_DeleteBlog",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/blogDeleteBlogResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "blogId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "tags": [
           "BlogService"
         ]
@@ -50,7 +209,7 @@
         "id": {
           "type": "string"
         },
-        "author_id": {
+        "authorId": {
           "type": "string"
         },
         "title": {
@@ -72,7 +231,7 @@
     "blogDeleteBlogResponse": {
       "type": "object",
       "properties": {
-        "blog_id": {
+        "blogId": {
           "type": "string"
         }
       }
@@ -104,51 +263,20 @@
     "protobufAny": {
       "type": "object",
       "properties": {
-        "type_url": {
+        "@type": {
           "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
         }
-      }
+      },
+      "additionalProperties": {}
     },
-    "runtimeError": {
+    "rpcStatus": {
       "type": "object",
       "properties": {
-        "error": {
-          "type": "string"
-        },
         "code": {
           "type": "integer",
           "format": "int32"
         },
         "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufAny"
-          }
-        }
-      }
-    },
-    "runtimeStreamError": {
-      "type": "object",
-      "properties": {
-        "grpc_code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "http_code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "http_status": {
           "type": "string"
         },
         "details": {

@@ -8,6 +8,7 @@ import (
 	"github.com/samutayuga/samgrpcexploring/pg"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 )
 
 // PgBlogServer PgBlogServcer ...
@@ -21,10 +22,11 @@ type PgBlogServer struct {
 func (s *PgBlogServer) CreateBlog(ctx context.Context, req *blogpb.CreateBlogRequest) (*blogpb.CreateBlogResponse, error) {
 
 	bRaw := req.GetBlog()
+	log.Printf("request has payload %v\n", bRaw)
 	bID := uuid.New().String()
 	countRec := pg.InsertBlog(&pg.BlogItem{BlogId: bID,
-		Author: req.Blog.AuthorId,
-		Title:  req.Blog.Title, Content: req.Blog.Content})
+		Author: bRaw.AuthorId,
+		Title:  bRaw.Title, Content: bRaw.Content})
 	if countRec == 1 {
 		return &blogpb.CreateBlogResponse{Blog: bRaw}, nil
 	}
@@ -48,7 +50,7 @@ func (s *PgBlogServer) UpdateBlog(ctx context.Context, req *blogpb.UpdateBlogReq
 	if count := pg.UpdateBlogWithAffectedRecords(oldBlog.Id, oldBlog.AuthorId, oldBlog.Content); count == 1 {
 		return &blogpb.UpdateBlogResponse{Blog: req.GetBlog()}, nil
 	}
-	return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Can not update blog %s", req.Blog.Id))
+	return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Can not update blog %s", req.Blog.Id))
 }
 
 //
@@ -56,7 +58,7 @@ func (s *PgBlogServer) DeleteBlog(ctx context.Context, req *blogpb.DeleteBlogReq
 	if count := pg.DeleteSingleBlog(req.BlogId); count == 1 {
 		return &blogpb.DeleteBlogResponse{BlogId: req.GetBlogId()}, nil
 	}
-	return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("Can not delete blog %s", req.GetBlogId()))
+	return nil, status.Errorf(codes.NotFound, fmt.Sprintf("Cannot delete record for id %s, because it is not found", req.GetBlogId()))
 }
 
 //

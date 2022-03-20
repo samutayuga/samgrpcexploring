@@ -1,0 +1,10 @@
+server:
+  port: 50051
+database:
+  host: minikube
+  port: 30432
+  username: postgres
+  dbname: blog
+endpoint:
+  port: 8001
+  blogResource: "/v1/samblog"

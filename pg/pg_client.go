@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
+	"github.com/samutayuga/samgrpcexploring/blog/cfg"
 	"log"
+	"os"
 )
 
 const (
@@ -35,8 +37,11 @@ type BlogItem struct {
 }
 
 func Init() {
+	//retrieve password from env variable which is injected through a secrets
+	dbPassword := os.Getenv("DB_PASSWORD")
+	cfg := cfg.LoadConfig()
 	pgInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		cfg.DbHost, cfg.DbPort, cfg.DbUser, dbPassword, cfg.DbName)
 	if Db, errConn = sql.Open("postgres", pgInfo); errConn != nil {
 		panic(errConn)
 	}
@@ -67,7 +72,7 @@ func DeleteSingleBlog(blogId string) int {
 		log.Printf("error deleting record %v\n", errDel)
 	} else {
 		if recordNum, errAccess := r.RowsAffected(); errAccess != nil {
-			log.Printf("error inserting record %v\n", errAccess)
+			log.Printf("error deleting record %v\n", errAccess)
 		} else {
 			return int(recordNum)
 		}
@@ -80,7 +85,7 @@ func SelectBlogById(blogId string) *BlogItem {
 	switch err := row.Scan(&id, &author, &title, &content); err {
 	case sql.ErrNoRows:
 		log.Printf("No record returned with id %s\n", blogId)
-		return &BlogItem{}
+		return nil
 	case nil:
 		bl := BlogItem{id, author, title, content}
 		log.Printf("Got %v ", bl)
