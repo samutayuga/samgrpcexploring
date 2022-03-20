@@ -17,19 +17,23 @@ import (
 )
 
 var (
-	blogConfig cfg.Config
-	client     gw.BlogServiceClient
+	blogConfig     cfg.Config
+	client         gw.BlogServiceClient
+	blogPath       string
+	blogPathWithId string
 )
 
 func init() {
 	blogConfig = cfg.LoadConfig()
+	blogPath = fmt.Sprintf("%s", blogConfig.ResourceBlog)
+	blogPathWithId = fmt.Sprintf("%s/%s", blogPath, "{blogId}")
 	opts := grpc.WithTransportCredentials(insecure.NewCredentials())
 	serverString := fmt.Sprintf("localhost:%d", blogConfig.ServerPort)
 	grpcServerEndPoint := flag.String("blog-server-endpoint", serverString, "gRPC Server Endpoint")
 	log.Printf("Using gRPC server at %s\n", *grpcServerEndPoint)
 	//dial grpc server
 	if conn, errDial := grpc.Dial(serverString, opts); errDial != nil {
-		panic(errDial)
+		log.Printf("Dialing grpc service %s failed %v\n", serverString, errDial)
 	} else {
 		client = gw.NewBlogServiceClient(conn)
 		restutil.BlogClient = client
@@ -50,10 +54,10 @@ func run() error {
 	defer cancel()
 
 	routers := mux.NewRouter()
-	routers.HandleFunc("/v1/samblog/{blogId}", restutil.ProcessASingleBlog).Methods("GET", "DELETE")
-	routers.HandleFunc("/v1/samblog", restutil.UpdateBlog).Methods("PATCH")
-	routers.HandleFunc("/v1/samblog", restutil.CreateBlog).Methods("POST")
-	routers.HandleFunc("/v1/samblog", restutil.ListBlog).Methods("GET")
+	routers.HandleFunc(blogPathWithId, restutil.ProcessASingleBlog).Methods("GET", "DELETE")
+	routers.HandleFunc(blogPath, restutil.UpdateBlog).Methods("PATCH")
+	routers.HandleFunc(blogPath, restutil.CreateBlog).Methods("POST")
+	routers.HandleFunc(blogPath, restutil.ListBlog).Methods("GET")
 	routers.HandleFunc("/liveness", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }).Methods("GET")
 	routers.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }).Methods("GET")
 

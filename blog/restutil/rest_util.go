@@ -16,13 +16,24 @@ import (
 	"time"
 )
 
+const (
+	ContentType = "application/json;charset=UFT-8"
+)
+
 var (
 	BlogClient gw.BlogServiceClient
 )
 
+type RespondHandler struct {
+	writer     http.ResponseWriter
+	anyError   error
+	blogId     string
+	logMessage string
+}
+
 func CreateBlog(writer http.ResponseWriter, request *http.Request) {
 	//handle the creation of the blog
-	writer.Header().Set("Content-Type", "application/json;charset=UFT-8")
+	writer.Header().Set("Content-Type", ContentType)
 
 	if reqBody, errReqBody := ioutil.ReadAll(request.Body); errReqBody == nil {
 		payload := pg.BlogItem{}
@@ -58,7 +69,7 @@ func CreateBlog(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 func ListBlog(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-Type", "application/json;charset=UFT-8")
+	writer.Header().Set("Content-Type", ContentType)
 	//handle the listing
 	allBls := make([]pg.BlogItem, 0)
 	stream, err := BlogClient.ListBlog(context.Background(), &gw.ListBlogRequest{})
@@ -84,7 +95,7 @@ func ListBlog(writer http.ResponseWriter, request *http.Request) {
 		})
 	}
 	if b, mErr := json.Marshal(allBls); mErr != nil {
-		log.Printf("error while marshalling response to json %v", mErr)
+		log.Printf("error while marshalling response to json %v\n", mErr)
 		writer.WriteHeader(http.StatusInternalServerError)
 	} else {
 		writer.WriteHeader(http.StatusOK)
@@ -92,7 +103,7 @@ func ListBlog(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 func UpdateBlog(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Content-Type", "application/json;charset=UFT-8")
+	writer.Header().Set("Content-Type", ContentType)
 	if reqBody, errReqBody := ioutil.ReadAll(request.Body); errReqBody == nil {
 		payload := pg.BlogItem{}
 
@@ -120,7 +131,7 @@ func UpdateBlog(writer http.ResponseWriter, request *http.Request) {
 				log.Printf("Blog is updated %v", cresponse)
 				//build the good response to end user
 				if b, mErr := json.Marshal(payload); mErr != nil {
-					log.Printf("error while marshalling response to json %v", mErr)
+					log.Printf("error while marshalling response to json %v\n", mErr)
 					writer.WriteHeader(http.StatusInternalServerError)
 				} else {
 					writer.WriteHeader(http.StatusOK)
@@ -129,8 +140,29 @@ func UpdateBlog(writer http.ResponseWriter, request *http.Request) {
 			}
 		}
 	} else {
-		log.Printf("error while reading the request payload %v", errReqBody)
+		log.Printf("error while reading the request payload %v\n", errReqBody)
 		writer.WriteHeader(http.StatusBadRequest)
+	}
+
+}
+func (r *RespondHandler) Handle() {
+	if r.anyError == nil {
+		log.Printf("Successfully Delete the blog with id %s\n", r.blogId)
+		r.writer.WriteHeader(http.StatusOK)
+	} else {
+		log.Printf("Error while Delete the err=%v\n", r.anyError)
+		if st, ok := status.FromError(r.anyError); ok {
+			if st.Code() == codes.NotFound {
+				log.Printf("Blog with id  %s is not found", r.blogId)
+				r.writer.WriteHeader(http.StatusNotFound)
+			} else {
+				r.writer.WriteHeader(http.StatusInternalServerError)
+			}
+
+		} else {
+			log.Printf("Unexpected error %v\n", r.anyError)
+			r.writer.WriteHeader(http.StatusInternalServerError)
+		}
 	}
 
 }
@@ -143,10 +175,10 @@ func ProcessASingleBlog(writer http.ResponseWriter, request *http.Request) {
 			//delete blog
 			resDel, errDel := BlogClient.DeleteBlog(context.Background(), &gw.DeleteBlogRequest{BlogId: blogId})
 			if errDel == nil {
-				log.Printf("Successfully Delete the blog %v", resDel)
+				log.Printf("Successfully Delete the blog %v\n", resDel)
 				writer.WriteHeader(http.StatusOK)
 			} else {
-				log.Printf("Error while Delete the err=%v", errDel)
+				log.Printf("Error while Delete the err=%v\n", errDel)
 				if st, ok := status.FromError(errDel); ok {
 					if st.Code() == codes.NotFound {
 						log.Printf("Blog with id  %s is not found", blogId)
@@ -156,7 +188,7 @@ func ProcessASingleBlog(writer http.ResponseWriter, request *http.Request) {
 					}
 
 				} else {
-					log.Printf("Unexpected error %v", errDel)
+					log.Printf("Unexpected error %v\n", errDel)
 					writer.WriteHeader(http.StatusInternalServerError)
 				}
 			}
@@ -164,7 +196,7 @@ func ProcessASingleBlog(writer http.ResponseWriter, request *http.Request) {
 			var successReadErr error
 			var b *gw.ReadBlogResponse
 			if b, successReadErr = BlogClient.ReadBlog(context.Background(), &gw.ReadBlogRequest{BlogId: blogId}); successReadErr == nil {
-				log.Printf("found %v", b)
+				log.Printf("found %v\n", b)
 				existingBl := b.GetBlog()
 				bItem := pg.BlogItem{
 					BlogId:  existingBl.GetId(),

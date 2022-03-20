@@ -14,6 +14,7 @@ type Config struct {
 	DbPort       int
 	DbUser       string
 	DbName       string
+	ResourceBlog string
 }
 
 func LoadConfig() Config {
@@ -33,7 +34,11 @@ func LoadConfig() Config {
 		dbPort := viper.GetInt("database.port")
 		dbUser := viper.GetString("database.username")
 		dbName := viper.GetString("database.dbname")
-		blogConfig := Config{ServerPort: svrPort, EndpointPort: httpPort, DbHost: dbHost, DbPort: dbPort, DbUser: dbUser, DbName: dbName}
+		resBlog := viper.GetString("endpoint.blogResource")
+		blogConfig := Config{ServerPort: svrPort, EndpointPort: httpPort,
+			DbHost: dbHost, DbPort: dbPort,
+			DbUser: dbUser, DbName: dbName,
+			ResourceBlog: resBlog}
 		log.Printf("Got config %v\n", blogConfig)
 		return blogConfig
 	}

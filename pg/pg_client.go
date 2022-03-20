@@ -10,11 +10,6 @@ import (
 )
 
 const (
-	host                 = "minikube"
-	port                 = 30432
-	user                 = "postgres"
-	password             = "thalesdigital"
-	dbname               = "blog"
 	sqlInsertTpl         = `INSERT INTO blog_item (id,author_id,title,content) VALUES($1, $2, $3, $4) RETURNING id;`
 	sqlDeleteTpl         = `DELETE FROM blog_item where id=$1;`
 	sqlSelectTpl         = `SELECT id,author_id,title,content FROM blog_item WHERE id=$1;`
