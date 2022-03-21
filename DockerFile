@@ -1,0 +1,14 @@
+FROM golang
+COPY blog/blog_server /go/src
+COPY blog/blogcommon /go/src
+COPY blog/blogpb /go/src
+COPY blog/cfg /go/src
+COPY blog/config /go/src
+COPY pg /go/src
+#COPY go.mod /go/src
+WORKDIR /go/src
+RUN go mod init github.com/samutayuga/samgrpcexploring
+RUN go get github.com/samutayuga/samgrpcexploring
+RUN go get ./...
+ENTRYPOINT go run main.go
+EXPOSE 8001
